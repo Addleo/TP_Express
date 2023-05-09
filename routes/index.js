@@ -35,25 +35,6 @@ const Artiste = sequelize.define('Artiste', {
   }
 })
 
-const Concert = sequelize.define('Concert', {
-  idConcert: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  dateConcert: {
-    type: DataTypes.DATE,
-  },
-  nbrPlaceDisponible: {
-    type: DataTypes.INTEGER,
-  },
-  idVille: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  }
-})
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Chat' });
@@ -106,15 +87,17 @@ router.get('/api/:param?/:id?', function(req, res, next) {
 });
 
 router.get('/liveaddict/:param?', function(req, res, next) {
-  const {param} = req.params;
+  const { param } = req.params;
 
   if(!param){
-    res.send("Hello")
+    const artistes = sequelize.query("SELECT * FROM `Artiste`", {
+      model: Artiste,
+    }).then((artistes) => {
+      res.send(artistes);
+    });
   }
   else{
-    const datas = sequelize.query("SELECT * FROM `"+param+"`").then((datas) => {
-      res.send(datas);
-    });
+    res.send("not implemented yet");
   }
 });
 
