@@ -54,6 +54,105 @@ const Concert = sequelize.define('Concert', {
   }
 })
 
+const Joue = sequelize.define('Joue', {
+  idConcert: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+  idStyle: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+})
+
+const Participe = sequelize.define('Participe', {
+  idConcert: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+  idVisiteur: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+})
+
+const Realise = sequelize.define('Realise', {
+  idArtiste: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+  idConcert: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+})
+
+const Style = sequelize.define('Style', {
+  idStyle: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  libelle: {
+    type: DataTypes.CHAR,
+  },
+  description: {
+    type: DataTypes.CHAR,
+  }
+})
+
+const Ville = sequelize.define('Ville', {
+  idVille: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  nom: {
+    type: DataTypes.CHAR,
+  },
+  coordonnees: {
+    type: DataTypes.TEXT,
+  }
+})
+
+const Visiteur = sequelize.define('Visiteur', {
+  idVisiteur: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  nom: {
+    type: DataTypes.CHAR,
+  },
+  prenom: {
+    type: DataTypes.CHAR,
+  },
+  email: {
+    type: DataTypes.CHAR,
+  },
+  age: {
+    type: DataTypes.INTEGER,
+  },
+  addresse: {
+    type: DataTypes.CHAR,
+  },
+  idParrain: {
+    type: DataTypes.INTEGER,
+  },
+  idVille: {
+    type: DataTypes.INTEGER,
+  }
+})
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Chat' });
@@ -104,18 +203,27 @@ router.get('/api/:param?/:id?', function(req, res, next) {
     }
   }
 });
-
+ 
 router.get('/liveaddict/:param?', function(req, res, next) {
-  const {param} = req.params;
+  let {param} = req.params;
 
-  if(!param){
-    res.send("Hello")
+  if(param){
+    param = param.charAt(0).toUpperCase() + param.slice(1);
   }
-  else{
-    const datas = sequelize.query("SELECT * FROM `"+param+"`").then((datas) => {
-      res.send(datas);
+
+  if (!param) {
+    res.send("Hello");
+    return;
+  }
+
+  const query = `SELECT * FROM ${param}`;
+  sequelize.query(query, {type: sequelize.QueryTypes.SELECT})
+    .then(result => {
+      res.send(result);
+    })
+    .catch(error => {
+      res.send(`Error: ${error.message}`);
     });
-  }
 });
 
 module.exports = router;
