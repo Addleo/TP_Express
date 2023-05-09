@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <div id="messages"></div>
+    <form id="form">
+      <input id="input">
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      let username = prompt("Quel est ton nom ?");
+      let msgs = [];
+      var socket = io();
+
+      var messages = document.getElementById('messages');
+      var form = document.getElementById('form');
+      var input = document.getElementById('input');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+          input.value = input.value.replace(/merde|putain/g,"*****");
+          socket.emit('chat message', input.value, username);
+          input.value = '';
+        }
+      });
+
+      socket.on('chat message', function(msg,username) {
+        var item = document.createElement('p');
+        //item.classList.add(username.replace(/ /g,"_"));
+        item.textContent = username + ' : ' + msg;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight)
+      });
+
+    </script>
+  </body>
+</html>

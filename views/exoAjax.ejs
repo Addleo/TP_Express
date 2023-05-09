@@ -1,0 +1,31 @@
+<!DOCTYPE>
+<html lang="fr">
+<head>
+	<meta charset="utf-8">
+	<title>Ajax météo angevine</title>
+</head>
+<body>
+    <input type="text" id="userInput"></input>
+    <button onclick='addContent();' >ajouter des données</button>
+	<div id='meteo'>
+        Prévision pour la ville de : <span style='font-size:1.5em;' id='cityName' ></span>
+        <br/>Bonjour, nous sommes le <span id='dateActuelle' ></span> et la température actuelle est de <span id='tempActuelle' class='temperature'  ></span>°C
+        <br/>Le soleil se levera à <span id='heureLever' class='heure' ></span> et se couchera à <span id='heureCoucher' class='heure'  ></span>
+	</div>
+	<script>
+        function addContent(){
+            let userInput = document.getElementById("userInput").value;
+            fetch("https://www.prevision-meteo.ch/services/json/"+userInput)
+            .then(function(response){ 
+                return response.json(); })
+            .then(function(jsonData){
+                cityName.innerText = userInput;
+                dateActuelle.innerText = jsonData.current_condition.date;
+                tempActuelle.innerText = jsonData.current_condition.tmp;
+                heureLever.innerText = jsonData.city_info.sunrise;
+                heureCoucher.innerText = jsonData.city_info.sunset;
+            });
+        }
+	</script>
+</body>
+</html>
