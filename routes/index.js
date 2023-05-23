@@ -1,6 +1,14 @@
 var express = require('express');
 var router = express.Router();
 const { Sequelize, Model, DataTypes } = require('sequelize');
+const passport = require('passport');
+
+function functionOauth(req,res,next){
+  if(req.isAuthentificated()){
+    return next();
+  }
+  res.redirect('/auth/github')
+}
 
 const sequelize = new Sequelize('liveAddict', 'root', 'rootpwd', {
   host: 'localhost',
@@ -220,7 +228,7 @@ router.get('/api/:param?/:id?', function(req, res, next) {
   }
 }); 
 
-router.get('/liveaddict/:param/:param2?/:param3?/:aggregat?', async function(req, res, next) {
+router.get('/liveaddict/:param/:param2?/:param3?/:aggregat?', functionOauth, async function(req, res, next) {
   let { param, param2, param3, aggregat } = req.params;
 
   if(param){
@@ -343,5 +351,9 @@ router.get('/liveaddict/:param/:param2?/:param3?/:aggregat?', async function(req
     res.send(`Error: ${error.message}`);
   }
 });
+
+router.get('/connected'), functionOauth, function(req,res,next){
+  res.send("Connected successfully");
+}
 
 module.exports = router;
