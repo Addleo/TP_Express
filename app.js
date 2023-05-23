@@ -1,57 +1,19 @@
 const createError = require('http-errors');
 const express = require('express');
-//const { Sequelize, Model, DataTypes } = require('sequelize');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-//const mysql = require('mysql');
+const oauth2 = require('oauth2');
 
 const app = express();
 
-/*const sequelize = new Sequelize('liveAddict', 'root', 'rootpwd', {
-  host: 'localhost',
-  port: 4000,
-  dialect: 'mariadb',
-  define: {
-    //prevent sequelize from pluralizing table names
-    freezeTableName: true
-  }
+const oauth2Client = oauth2.createClient({
+  clientId: 'VOTRE_CLIENT_ID',
+  clientSecret: 'VOTRE_CLIENT_SECRET',
+  authorizationUri: 'URI_DE_L_AUTHORIZATION',
+  tokenUri: 'URI_DU_TOKEN',
+  redirectUri: 'URI_DE_RETOUR_APRES_AUTHENTIFICATION',
 });
-
-sequelize.authenticate().then(() =>{
-    console.log("Connected!")
-  }
-).catch((err) => {
-    console.log("error connecting =(", err)
-  }
-)
-
-const Artiste = sequelize.define('Artiste', {
-  idArtiste: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  pseudo: {
-    type: DataTypes.STRING,
-  },
-  idStyle: {
-    type: DataTypes.INTEGER,
-  }
-})
-
-async function get_artiste() {
-  const artistes = await sequelize.query("SELECT * FROM `Artiste`", {
-    model: Artiste,
-  });
-  console.log("List of artists :");
-  for(param of artistes) {
-    console.log(param.pseudo);
-  }
-}
-get_artiste();*/
-
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');

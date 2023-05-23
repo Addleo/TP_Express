@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "nodemon ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -15,6 +15,8 @@
     "morgan": "~1.9.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.2.4",
+    "nodemon": "^2.0.22",
+    "oauth2": "^0.0.1",
     "sequelize": "^6.31.0",
     "sequelize-cli": "^6.6.0",
     "socket.io": "^4.6.1",

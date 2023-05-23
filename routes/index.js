@@ -33,6 +33,8 @@ const Artiste = sequelize.define('Artiste', {
   idStyle: {
     type: DataTypes.INTEGER,
   }
+},{
+  timestamps: false,
 })
 
 const Concert = sequelize.define('Concert', {
@@ -52,6 +54,8 @@ const Concert = sequelize.define('Concert', {
     type: DataTypes.INTEGER,
     allowNull: false,
   }
+},{
+  timestamps: false,
 })
 
 const Joue = sequelize.define('Joue', {
@@ -65,6 +69,8 @@ const Joue = sequelize.define('Joue', {
     allowNull: false,
     primaryKey: true,
   },
+},{
+  timestamps: false,
 })
 
 const Participe = sequelize.define('Participe', {
@@ -78,6 +84,8 @@ const Participe = sequelize.define('Participe', {
     allowNull: false,
     primaryKey: true,
   },
+},{
+  timestamps: false,
 })
 
 const Realise = sequelize.define('Realise', {
@@ -91,6 +99,8 @@ const Realise = sequelize.define('Realise', {
     allowNull: false,
     primaryKey: true,
   },
+},{
+  timestamps: false,
 })
 
 const Style = sequelize.define('Style', {
@@ -106,6 +116,8 @@ const Style = sequelize.define('Style', {
   description: {
     type: DataTypes.CHAR,
   }
+},{
+  timestamps: false,
 })
 
 const Ville = sequelize.define('Ville', {
@@ -121,6 +133,8 @@ const Ville = sequelize.define('Ville', {
   coordonnees: {
     type: DataTypes.TEXT,
   }
+},{
+  timestamps: false,
 })
 
 const Visiteur = sequelize.define('Visiteur', {
@@ -142,7 +156,7 @@ const Visiteur = sequelize.define('Visiteur', {
   age: {
     type: DataTypes.INTEGER,
   },
-  addresse: {
+  adresse: {
     type: DataTypes.CHAR,
   },
   idParrain: {
@@ -151,6 +165,8 @@ const Visiteur = sequelize.define('Visiteur', {
   idVille: {
     type: DataTypes.INTEGER,
   }
+},{
+  timestamps: false,
 })
 
 /* GET home page. */
@@ -202,28 +218,130 @@ router.get('/api/:param?/:id?', function(req, res, next) {
       res.status(400).send("Unassigned Id : " + id + ". Currently, Ids are comprised between 1 and " + max_id);
     }
   }
-});
- 
-router.get('/liveaddict/:param?', function(req, res, next) {
-  let {param} = req.params;
+}); 
+
+router.get('/liveaddict/:param/:param2?/:param3?/:aggregat?', async function(req, res, next) {
+  let { param, param2, param3, aggregat } = req.params;
 
   if(param){
     param = param.charAt(0).toUpperCase() + param.slice(1);
   }
-
-  if (!param) {
-    res.send("Hello");
-    return;
+  if(param2){
+    param2 = param2.charAt(0).toUpperCase() + param2.slice(1);
   }
 
-  const query = `SELECT * FROM ${param}`;
-  sequelize.query(query, {type: sequelize.QueryTypes.SELECT})
-    .then(result => {
-      res.send(result);
-    })
-    .catch(error => {
-      res.send(`Error: ${error.message}`);
-    });
+  const models = {
+    Artistes: Artiste,
+    Styles: Style,
+    Concerts: Concert,
+    Visiteurs: Visiteur
+  };
+
+  const villes = await Ville.findAll();
+  const artistes = await Artiste.findAll();
+
+  const isVille = villes.some(ville => ville.nom === param2);
+  const isArtiste = artistes.some(artiste => artiste.pseudo === param2);
+
+  try {
+    if (param in models) {
+      const Model = models[param];
+      let results;
+
+      if (!param2) {
+        results = await Model.findAll(); //L'ensemble des artistes/styles/concerts/visiteurs
+      } 
+      else if(isVille) {
+        const ville = await Ville.findOne({
+          attributes: ['idVille'],
+          where: { nom: param2 }
+        });
+
+        if (param === "Concerts" || param === "Visiteurs") { //L'ensemble des visiteurs/concerts d'une ville
+          
+          if(param === "Concerts" && param3){ //L'ensemble des concerts d'un style d'une ville
+            
+            if(aggregat){//La proportion des styles écoutés par ville
+              if(aggregat == "proportion"){
+                const style = await Style.findOne({
+                  attributes: ['idStyle'],
+                  where: { libelle: param3 }
+                });
+    
+                const concerts = await Joue.count({
+                  attributes: ['idConcert'],
+                  where: { idStyle: style.idStyle }
+                });
+                
+                const concerts_count = await Joue.findAll({
+                  attributes: ['idConcert'],
+                  where: { idStyle: style.idStyle }
+                });
+    
+                const concertIds = concerts_count.map(concert => concert.idConcert);
+    
+                const total = await Model.count({
+                  where: { idConcert: concertIds, idVille: ville.idVille }
+                });
+    
+                results = total +"/"+ concerts+" des concerts de "+param2+" sont des concerts de "+param3;
+              }
+              else{
+                results = "Incorrect parameters";
+              }
+            }
+            else{
+              const style = await Style.findOne({
+                attributes: ['idStyle'],
+                where: { libelle: param3 }
+              });
+  
+              const concerts = await Joue.findAll({
+                attributes: ['idConcert'],
+                where: { idStyle: style.idStyle }
+              });
+  
+              const concertIds = concerts.map(concert => concert.idConcert);
+  
+              results = await Model.findAll({
+                where: { idConcert: concertIds, idVille: ville.idVille }
+              });
+            }
+
+          }
+          else{
+            results = await Model.findAll({
+              where: { idVille: ville.idVille }
+            });
+          }
+        }
+      }
+      else if(isArtiste){ // l'ensemble des concerts d'un artiste
+        const artiste = await Artiste.findOne({
+          attributes: ['idArtiste'],
+          where: { pseudo: param2 }
+        });
+        
+        const concerts = await Realise.findAll({
+          attributes: ['idConcert'],
+          where: { idArtiste: artiste.idArtiste }
+        });
+        
+        const concertIds = concerts.map(concert => concert.idConcert);
+        
+        results = await Model.findAll({
+          where: { idConcert: concertIds }
+        });
+
+      }
+      res.send(results);
+    }
+    else {
+      res.send("Invalid parameters");
+    }
+  } catch (error) {
+    res.send(`Error: ${error.message}`);
+  }
 });
 
 module.exports = router;
